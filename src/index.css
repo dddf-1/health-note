@@ -55,6 +55,10 @@ button {
   gap: 12px;
 }
 
+.app.has-tabs {
+  padding-bottom: calc(env(safe-area-inset-bottom) + 88px);
+}
+
 .app.workout {
   /* 하단 휴식 바·알림 자리 */
   padding-bottom: calc(env(safe-area-inset-bottom) + 140px);
@@ -569,4 +573,217 @@ button {
   background: var(--surface-2);
   font-size: 16px;
   resize: vertical;
+}
+
+/* ── 하단 탭 ─────────────────────────── */
+
+.tab-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 10;
+  display: flex;
+  justify-content: center;
+  padding: 6px 12px calc(env(safe-area-inset-bottom) + 6px);
+  background: var(--bg);
+  border-top: 1px solid var(--border);
+}
+
+.tab {
+  flex: 1;
+  max-width: 172px;
+  min-height: var(--tap);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+
+.tab span {
+  font-size: 1.25rem;
+  line-height: 1;
+  filter: grayscale(1);
+  opacity: 0.7;
+}
+
+.tab.selected {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.tab.selected span {
+  filter: none;
+  opacity: 1;
+}
+
+.page-title {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.empty-card {
+  text-align: center;
+  padding: 32px 14px;
+}
+
+.empty-card .routine {
+  font-size: 1.25rem;
+  margin-bottom: 4px;
+}
+
+/* ── 홈 요약 ─────────────────────────── */
+
+.week-dots {
+  display: flex;
+  gap: 6px;
+  margin: 4px 0 8px;
+}
+
+.week-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+}
+
+.week-dot.filled {
+  border-color: var(--accent);
+  background: var(--accent);
+}
+
+.trend-list {
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.trend-list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 4px 0;
+}
+
+.trend {
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.trend.up {
+  color: var(--accent);
+}
+
+/* ── 기록 ────────────────────────────── */
+
+.history-month {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.history-month h2 {
+  margin: 4px 0 0;
+}
+
+.history-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 100%;
+  text-align: left;
+}
+
+.history-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.history-exercises {
+  font-size: 0.875rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.history-stats {
+  font-size: 0.875rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.detail-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.detail-header .icon-btn {
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.edit-row {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr) auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 6px;
+  margin: 6px 0;
+}
+
+.edit-input {
+  width: 100%;
+  min-height: 44px;
+  padding: 0 10px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  font-size: 16px;
+  text-align: center;
+}
+
+.btn-danger-text {
+  background: transparent;
+  color: var(--danger);
+}
+
+/* ── 성장 ────────────────────────────── */
+
+.select {
+  width: 100%;
+  min-height: var(--tap);
+  padding: 0 12px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  font-size: 16px;
+}
+
+.progress-head {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  margin-bottom: 8px;
+}
+
+.progress-value {
+  font-size: 1.75rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.chart {
+  margin: 0 -6px;
+}
+
+.detail-sets {
+  margin: 4px 6px 0;
+  font-variant-numeric: tabular-nums;
 }

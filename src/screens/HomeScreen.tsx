@@ -2,6 +2,7 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { useState } from 'react'
 import { Sheet } from '../components/Sheet'
 import { db } from '../db/db'
+import { getHomeStats } from '../db/history'
 import {
   discardWorkout,
   finishWorkout,
@@ -11,7 +12,9 @@ import {
   startWorkout,
 } from '../db/repo'
 import type { WorkoutSummary } from '../db/repo'
+import { DEFAULT_SETTINGS } from '../db/types'
 import { usePersistentStorage } from '../hooks/timers'
+import { formatWeight } from '../lib/format'
 
 /** 홈 화면에 추가해서 실행 중인지 (아이폰 Safari 는 navigator.standalone) */
 function isInstalled(): boolean {
@@ -25,6 +28,9 @@ const PERSIST_LABEL = {
   'not-granted': '일반 보관 (홈 화면 설치 권장)',
   unsupported: '이 브라우저는 지원 안 함',
 } as const
+
+const dayOf = (t: number) =>
+  new Date(t).toLocaleDateString('ko-KR', { month: 'numeric', day: 'numeric', weekday: 'short' })
 
 const timeOf = (t: number) =>
   new Date(t).toLocaleString('ko-KR', { month: 'numeric', day: 'numeric', hour: 'numeric', minute: '2-digit' })
@@ -40,6 +46,8 @@ export function HomeScreen(props: {
     routines: await db.routines.count(),
     exercises: await db.exercises.count(),
   }))
+  const stats = useLiveQuery(() => getHomeStats(db))
+  const unit = useLiveQuery(() => db.settings.get('app'))?.unit ?? DEFAULT_SETTINGS.unit
   const [pickedId, setPickedId] = useState<number | null>(null)
   const [confirmRestart, setConfirmRestart] = useState(false)
   const persist = usePersistentStorage()
@@ -65,7 +73,7 @@ export function HomeScreen(props: {
   }
 
   return (
-    <main className="app">
+    <>
       <header className="app-header">
         <img src={`${import.meta.env.BASE_URL}logo.svg`} alt="" width={40} height={40} />
         <h1>나만의 헬스 노트</h1>
@@ -121,6 +129,47 @@ export function HomeScreen(props: {
         )}
       </section>
 
+      {stats && (
+        <section className="card">
+          <p className="label">
+            이번 주 {stats.weeklyDays}/{stats.weeklyGoal}회
+            {stats.weeklyDays >= stats.weeklyGoal ? ' · 목표 달성 🎉' : ''}
+          </p>
+          <div className="week-dots" aria-hidden="true">
+            {Array.from({ length: Math.max(stats.weeklyGoal, stats.weeklyDays) }, (_, i) => (
+              <span key={i} className={`week-dot ${i < stats.weeklyDays ? 'filled' : ''}`} />
+            ))}
+          </div>
+          {stats.last ? (
+            <>
+              <p className="label">
+                지난 운동 · {stats.last.routineName} · {dayOf(stats.last.date)}
+              </p>
+              {stats.last.trends.length > 0 ? (
+                <ul className="trend-list">
+                  {stats.last.trends.map((t) => (
+                    <li key={t.exerciseId}>
+                      <span>{t.name}</span>
+                      <span className={`trend ${t.trend}`}>
+                        {formatWeight(t.latestTopKg, unit)}
+                        {unit}{' '}
+                        {t.trend === 'same'
+                          ? '= 지난번과 같음'
+                          : `${t.trend === 'up' ? '▲' : '▼'} ${formatWeight(Math.abs(t.diffKg), unit)}`}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="muted">다음 운동부터 지난번과 비교해 드려요.</p>
+              )}
+            </>
+          ) : (
+            <p className="muted">첫 운동을 시작해 보세요.</p>
+          )}
+        </section>
+      )}
+
       <section className="card">
         <p className="label">이 기기 상태</p>
         <dl className="status">
@@ -140,7 +189,7 @@ export function HomeScreen(props: {
         )}
       </section>
 
-      <footer className="footer">스프린트 1 개발 중 · v0.2.0</footer>
+      <footer className="footer">스프린트 2 개발 중 · v0.3.0</footer>
 
       {confirmRestart && (
         <Sheet
@@ -152,6 +201,6 @@ export function HomeScreen(props: {
           ]}
         />
       )}
-    </main>
+    </>
   )
 }
