@@ -17,7 +17,9 @@ import {
   restoreSet,
   setDone,
   startWorkout,
+  stepSetValue,
   updateSetValues,
+  updateWorkoutMemo,
 } from './repo'
 import { SEED_EXERCISES, SEED_ROUTINES } from './seed'
 
@@ -118,11 +120,37 @@ describe('F-06·F-10 세트 기록과 자동 저장', () => {
     await db.open()
   })
 
+  it('+/− 를 연타해도 누른 횟수만큼 반영', async () => {
+    const id = await startWorkout(db, 1)
+    const [first] = await getWorkoutSets(db, id)
+    const kg = { unit: 'kg', weightStep: 2.5 } as const
+    await Promise.all([
+      stepSetValue(db, first.id, 'weight', 1, kg),
+      stepSetValue(db, first.id, 'weight', 1, kg),
+      stepSetValue(db, first.id, 'reps', 1, kg),
+      stepSetValue(db, first.id, 'reps', 1, kg),
+      stepSetValue(db, first.id, 'reps', 1, kg),
+    ])
+    expect(await db.workoutSets.get(first.id)).toMatchObject({ weightKg: 5, reps: 3 })
+  })
+
   it('입력 범위를 넘으면 고정값으로 저장', async () => {
     const id = await startWorkout(db, 1)
     const [first] = await getWorkoutSets(db, id)
     await updateSetValues(db, first.id, { weightKg: 999, reps: -3 })
     expect(await db.workoutSets.get(first.id)).toMatchObject({ weightKg: 500, reps: 0 })
+  })
+
+  it('체크하면 바로 다음 빈 세트에 같은 값을 채운다 (값이 있는 세트는 그대로)', async () => {
+    const id = await startWorkout(db, 1)
+    const [s1, s2, s3, s4] = await getWorkoutSets(db, id)
+    await updateSetValues(db, s3.id, { weightKg: 70, reps: 5 })
+    await updateSetValues(db, s1.id, { weightKg: 60, reps: 10 })
+    await setDone(db, s1.id, true)
+    expect(await db.workoutSets.get(s2.id)).toMatchObject({ weightKg: 60, reps: 10, done: false })
+    await setDone(db, s2.id, true)
+    expect(await db.workoutSets.get(s3.id)).toMatchObject({ weightKg: 70, reps: 5 })
+    expect(await db.workoutSets.get(s4.id)).toMatchObject({ weightKg: null, reps: null })
   })
 
   it('체크 해제하면 완료 시각도 지운다', async () => {
@@ -223,6 +251,18 @@ describe('F-11 운동 완료', () => {
     ])
     expect(await db.workouts.get(id)).toMatchObject({ status: 'done', memo: '컨디션 좋음' })
     expect(await getWorkoutSets(db, id)).toHaveLength(2)
+  })
+})
+
+describe('완료 요약 메모', () => {
+  it('앞뒤 공백을 지우고 200자까지, 비우면 삭제', async () => {
+    const id = await doWorkout(1, 0, 60, 10)
+    await updateWorkoutMemo(db, id, '  좋음  ')
+    expect((await db.workouts.get(id))?.memo).toBe('좋음')
+    await updateWorkoutMemo(db, id, 'a'.repeat(250))
+    expect((await db.workouts.get(id))?.memo).toHaveLength(200)
+    await updateWorkoutMemo(db, id, '   ')
+    expect((await db.workouts.get(id))?.memo).toBeUndefined()
   })
 })
 

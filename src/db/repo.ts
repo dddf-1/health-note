@@ -11,6 +11,8 @@ import {
   isPersonalRecord,
   isStaleActive,
   nextRoutineId,
+  stepReps,
+  stepWeight,
   totalVolume,
 } from '../domain/rules'
 
@@ -158,6 +160,29 @@ export async function updateSetValues(
   await db.workoutSets.update(setId, changes)
 }
 
+/**
+ * +/− 버튼. 화면에 보이는 값이 아니라 DB 의 현재 값에서 증감해서,
+ * 화면이 갱신되기 전에 연타해도 누른 횟수만큼 정확히 반영된다.
+ */
+export async function stepSetValue(
+  db: HealthNoteDB,
+  setId: number,
+  field: 'weight' | 'reps',
+  direction: 1 | -1,
+  settings: Pick<Settings, 'unit' | 'weightStep'>,
+): Promise<void> {
+  await db.transaction('rw', db.workoutSets, async () => {
+    const set = await db.workoutSets.get(setId)
+    if (!set) return
+    await db.workoutSets.update(
+      setId,
+      field === 'weight'
+        ? { weightKg: stepWeight(set.weightKg, direction, settings.weightStep, settings.unit) }
+        : { reps: stepReps(set.reps, direction) },
+    )
+  })
+}
+
 /** ✓ 체크/해제. 체크하면 즉시 저장하고 최고 기록(PR)인지 돌려준다 */
 export async function setDone(
   db: HealthNoteDB,
@@ -171,7 +196,26 @@ export async function setDone(
   }
   await db.workoutSets.update(setId, { done: true, doneAt: now })
   const set = await db.workoutSets.get(setId)
-  return { isPR: set ? await isSetPR(db, set) : false }
+  if (!set) return { isPR: false }
+  await carryForward(db, set)
+  return { isPR: await isSetPR(db, set) }
+}
+
+/**
+ * 처음 하는 종목처럼 뒤 세트가 비어 있으면, 방금 체크한 세트 값을 바로 다음 빈 세트에 채운다.
+ * (무게·횟수 둘 다 빈 세트만. 이미 값이 있는 세트는 건드리지 않음)
+ */
+async function carryForward(db: HealthNoteDB, set: WorkoutSet): Promise<void> {
+  if (set.reps === null) return
+  const next = (await getWorkoutSets(db, set.workoutId)).find(
+    (s) =>
+      s.exerciseId === set.exerciseId &&
+      s.setNumber === set.setNumber + 1 &&
+      !s.done &&
+      s.weightKg === null &&
+      s.reps === null,
+  )
+  if (next) await db.workoutSets.update(next.id, { weightKg: set.weightKg, reps: set.reps })
 }
 
 /** F-12: 이 세트 이전에 완료한 같은 종목의 모든 세트보다 추정 1RM 이 클 때 PR */
@@ -286,6 +330,16 @@ export async function finishWorkout(
   })
   if (result.status === 'empty') return result
   return { ...result, summary: await getWorkoutSummary(db, workoutId) }
+}
+
+/** 완료 요약 화면에서 메모 저장 (최대 200자, 비우면 삭제) */
+export async function updateWorkoutMemo(
+  db: HealthNoteDB,
+  workoutId: number,
+  memo: string,
+): Promise<void> {
+  const trimmed = memo.trim().slice(0, MEMO_MAX)
+  await db.workouts.update(workoutId, { memo: trimmed === '' ? undefined : trimmed })
 }
 
 export async function getWorkoutSummary(
