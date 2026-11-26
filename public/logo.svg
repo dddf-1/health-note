@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="112" fill="#111827"/>
+  <!-- 덤벨 -->
+  <g fill="#a3e635">
+    <rect x="96" y="176" width="40" height="160" rx="14"/>
+    <rect x="144" y="200" width="32" height="112" rx="12"/>
+    <rect x="336" y="200" width="32" height="112" rx="12"/>
+    <rect x="376" y="176" width="40" height="160" rx="14"/>
+    <rect x="172" y="240" width="168" height="32" rx="10"/>
+  </g>
+  <!-- 체크 -->
+  <path d="M196 380 l40 40 l84 -96" fill="none" stroke="#ffffff" stroke-width="30" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

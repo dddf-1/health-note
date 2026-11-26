@@ -1,122 +1,80 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import './App.css'
+import { useLiveQuery } from 'dexie-react-hooks'
+import { useEffect, useState } from 'react'
+import { db } from './db/db'
+import { recommendRoutine } from './db/repo'
 
-function App() {
-  const [count, setCount] = useState(0)
+/** 홈 화면에 추가해서 실행 중인지 (아이폰 Safari 는 navigator.standalone) */
+function isInstalled(): boolean {
+  const nav = navigator as Navigator & { standalone?: boolean }
+  return nav.standalone === true || window.matchMedia('(display-mode: standalone)').matches
+}
+
+type PersistState = 'checking' | 'granted' | 'not-granted' | 'unsupported'
+
+/** 브라우저가 저장 공간을 임의로 지우지 않도록 영구 보관을 요청 */
+function usePersistentStorage(): PersistState {
+  // 오래된 브라우저에는 navigator.storage 가 없을 수 있다
+  const supported = typeof navigator.storage?.persist === 'function'
+  const [state, setState] = useState<PersistState>(supported ? 'checking' : 'unsupported')
+  useEffect(() => {
+    if (!supported) return
+    navigator.storage
+      .persist()
+      .then((ok) => setState(ok ? 'granted' : 'not-granted'))
+      .catch(() => setState('not-granted'))
+  }, [supported])
+  return state
+}
+
+const PERSIST_LABEL: Record<PersistState, string> = {
+  checking: '확인 중…',
+  granted: '영구 보관 ✓',
+  'not-granted': '일반 보관 (홈 화면 설치 권장)',
+  unsupported: '이 브라우저는 지원 안 함',
+}
+
+export default function App() {
+  const routine = useLiveQuery(() => recommendRoutine(db))
+  const routineCount = useLiveQuery(() => db.routines.count())
+  const exerciseCount = useLiveQuery(() => db.exercises.count())
+  const persist = usePersistentStorage()
+  const installed = isInstalled()
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
+    <main className="app">
+      <header className="app-header">
+        <img src={`${import.meta.env.BASE_URL}logo.svg`} alt="" width={40} height={40} />
+        <h1>나만의 헬스 노트</h1>
+      </header>
+
+      <section className="card">
+        <p className="label">오늘의 루틴</p>
+        <p className="routine">{routine?.name ?? '불러오는 중…'}</p>
+        <button type="button" className="primary" disabled>
+          ▶ 운동 시작 (곧 열려요)
         </button>
       </section>
 
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
+      <section className="card">
+        <p className="label">이 기기 상태</p>
+        <dl className="status">
+          <dt>홈 화면 설치</dt>
+          <dd>{installed ? '설치됨 ✓' : '브라우저에서 실행 중'}</dd>
+          <dt>저장 공간</dt>
+          <dd>{PERSIST_LABEL[persist]}</dd>
+          <dt>저장된 데이터</dt>
+          <dd>
+            루틴 {routineCount ?? '-'}개 · 종목 {exerciseCount ?? '-'}개
+          </dd>
+        </dl>
+        {!installed && (
+          <p className="hint">
+            아이폰: Safari 하단 공유 버튼 → <b>홈 화면에 추가</b>를 누르면 앱처럼 쓸 수 있어요.
+          </p>
+        )}
       </section>
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
+      <footer className="footer">스프린트 1 개발 중 · v0.1.0</footer>
+    </main>
   )
 }
-
-export default App
