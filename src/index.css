@@ -991,3 +991,31 @@ button {
 .step-btn:disabled {
   opacity: 0.3;
 }
+
+.ok {
+  margin: 8px 0 0;
+  color: var(--accent);
+  font-size: 0.875rem;
+}
+
+.backup-warn {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(248, 113, 113, 0.12);
+  font-size: 0.875rem;
+}
+
+.onboarding {
+  padding-top: calc(env(safe-area-inset-top) + 40px);
+}
+
+.onboarding .summary-header img {
+  display: block;
+  margin: 0 auto 8px;
+}
+
+.onboarding-text {
+  margin: 0;
+  font-size: 0.9375rem;
+}

@@ -90,6 +90,10 @@ export interface Settings {
   restSeconds: number
   /** 주간 목표 운동일 */
   weeklyGoal: number
+  /** 첫 실행 안내(F-01)를 마친 시각 */
+  onboardedAt?: number
+  /** 마지막으로 백업 파일을 저장한 시각 (F-19) */
+  lastBackupAt?: number
 }
 
 export const DEFAULT_SETTINGS: Settings = {

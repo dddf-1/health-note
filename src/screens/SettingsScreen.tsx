@@ -1,5 +1,6 @@
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useState } from 'react'
+import { BackupCard } from '../components/BackupCard'
 import { db } from '../db/db'
 import { GOAL_MAX, GOAL_MIN, moveRoutine, REST_MAX, REST_MIN, updateSettings, WEIGHT_STEPS } from '../db/manage'
 import { getSettings, listRoutines } from '../db/repo'
@@ -135,6 +136,8 @@ export function SettingsScreen(props: { onEditRoutine: (routineId?: number) => v
         </button>
       </section>
 
+      <BackupCard lastBackupAt={settings.lastBackupAt} />
+
       <section className="card">
         <p className="label">이 기기 상태</p>
         <dl className="status">
@@ -154,7 +157,7 @@ export function SettingsScreen(props: { onEditRoutine: (routineId?: number) => v
         )}
       </section>
 
-      <footer className="footer">나만의 헬스 노트 · v0.4.0</footer>
+      <footer className="footer">나만의 헬스 노트 · v0.5.0</footer>
     </>
   )
 }

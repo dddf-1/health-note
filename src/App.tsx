@@ -2,9 +2,10 @@ import { useCallback, useEffect, useState } from 'react'
 import { TabBar } from './components/TabBar'
 import type { Tab } from './components/TabBar'
 import { db } from './db/db'
-import { getActiveWorkout } from './db/repo'
+import { getActiveWorkout, getSettings } from './db/repo'
 import type { WorkoutSummary } from './db/repo'
 import { HistoryScreen } from './screens/HistoryScreen'
+import { OnboardingScreen } from './screens/OnboardingScreen'
 import { HomeScreen } from './screens/HomeScreen'
 import { ProgressScreen } from './screens/ProgressScreen'
 import { RoutineEditScreen } from './screens/RoutineEditScreen'
@@ -15,6 +16,7 @@ import { WorkoutScreen } from './screens/WorkoutScreen'
 
 type View =
   | { name: 'loading' }
+  | { name: 'onboarding' }
   | { name: Tab }
   | { name: 'workout'; workoutId: number }
   | { name: 'summary'; summary: WorkoutSummary }
@@ -32,10 +34,12 @@ export default function App() {
 
   // F-10: 앱을 다시 열면 진행 중 운동으로 바로 복귀 (12시간 지난 운동은 홈에서 안내)
   useEffect(() => {
-    getActiveWorkout(db)
-      .then((active) =>
-        setView(active && !active.isStale ? { name: 'workout', workoutId: active.id } : { name: 'home' }),
-      )
+    Promise.all([getActiveWorkout(db), getSettings(db), db.workouts.count()])
+      .then(([active, settings, workoutCount]) => {
+        // F-01: 처음 쓰는 사람만 (이미 기록이 있으면 건너뜀)
+        if (settings.onboardedAt === undefined && workoutCount === 0) setView({ name: 'onboarding' })
+        else setView(active && !active.isStale ? { name: 'workout', workoutId: active.id } : { name: 'home' })
+      })
       .catch(() => setView({ name: 'home' }))
   }, [])
 
@@ -55,6 +59,8 @@ export default function App() {
   switch (view.name) {
     case 'loading':
       return <main className="app" />
+    case 'onboarding':
+      return <OnboardingScreen onDone={goHome} />
     case 'workout':
       return <WorkoutScreen workoutId={view.workoutId} onExit={goHome} onFinished={showSummary} />
     case 'summary':

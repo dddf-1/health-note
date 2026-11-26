@@ -106,7 +106,7 @@ export const SEED_ROUTINE_ITEMS: RoutineItem[] = ROUTINE_LIST.flatMap((r, ri) =>
 export function seedDatabase(tx: Transaction): void {
   void tx.table('settings').add(DEFAULT_SETTINGS)
   void tx.table('exercises').bulkAdd(SEED_EXERCISES)
-  // 스프린트 1: 첫 실행 설정(F-01) 전까지 예시 루틴을 기본으로 넣어 둔다
+  // 예시 3분할 루틴 (첫 실행 안내에서 설정 → 루틴에서 고칠 수 있다고 알려 준다)
   void tx.table('routines').bulkAdd(SEED_ROUTINES)
   void tx.table('routineItems').bulkAdd(SEED_ROUTINE_ITEMS)
 }
