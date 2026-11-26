@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useState } from 'react'
 import { TabBar } from './components/TabBar'
 import type { Tab } from './components/TabBar'
 import { db } from './db/db'
@@ -7,7 +7,6 @@ import type { WorkoutSummary } from './db/repo'
 import { HistoryScreen } from './screens/HistoryScreen'
 import { OnboardingScreen } from './screens/OnboardingScreen'
 import { HomeScreen } from './screens/HomeScreen'
-import { ProgressScreen } from './screens/ProgressScreen'
 import { RoutineEditScreen } from './screens/RoutineEditScreen'
 import { SettingsScreen } from './screens/SettingsScreen'
 import { SummaryScreen } from './screens/SummaryScreen'
@@ -22,6 +21,9 @@ type View =
   | { name: 'summary'; summary: WorkoutSummary }
   | { name: 'detail'; workoutId: number }
   | { name: 'routine'; routineId?: number }
+
+// 그래프 라이브러리(Recharts)가 커서 성장 탭을 처음 열 때 불러온다
+const ProgressScreen = lazy(() => import('./screens/ProgressScreen').then((m) => ({ default: m.ProgressScreen })))
 
 const TITLES: Record<Exclude<Tab, 'home'>, string> = {
   history: '운동 기록',
@@ -79,7 +81,11 @@ export default function App() {
             {view.name !== 'home' && <h1 className="page-title">{TITLES[view.name]}</h1>}
             {view.name === 'home' && <HomeScreen onOpenWorkout={openWorkout} onFinished={showSummary} />}
             {view.name === 'history' && <HistoryScreen onOpen={openDetail} />}
-            {view.name === 'progress' && <ProgressScreen />}
+            {view.name === 'progress' && (
+              <Suspense fallback={<p className="muted">그래프 불러오는 중…</p>}>
+                <ProgressScreen />
+              </Suspense>
+            )}
             {view.name === 'settings' && <SettingsScreen onEditRoutine={editRoutine} />}
           </main>
           <TabBar current={view.name} onChange={(tab) => setView({ name: tab })} />
