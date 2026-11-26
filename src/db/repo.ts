@@ -382,7 +382,8 @@ export async function listRoutines(db: HealthNoteDB): Promise<Routine[]> {
   return db.routines.orderBy('order').toArray()
 }
 
-export async function createRoutine(db: HealthNoteDB, input: RoutineInput): Promise<number> {
+/** 루틴 입력 검사. 앞뒤 공백을 지운 이름을 돌려준다 */
+export function validateRoutineInput(input: RoutineInput): string {
   const name = input.name.trim()
   if (name.length === 0) throw new ValidationError('루틴 이름을 입력해 주세요')
   if (name.length > ROUTINE_NAME_MAX) {
@@ -399,6 +400,11 @@ export async function createRoutine(db: HealthNoteDB, input: RoutineInput): Prom
     }
   }
 
+  return name
+}
+
+export async function createRoutine(db: HealthNoteDB, input: RoutineInput): Promise<number> {
+  const name = validateRoutineInput(input)
   return db.transaction('rw', [db.routines, db.routineItems], async () => {
     if ((await db.routines.filter((r) => r.name === name).count()) > 0) {
       throw new ValidationError('같은 이름의 루틴이 있어요')

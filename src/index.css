@@ -787,3 +787,207 @@ button {
   margin: 4px 6px 0;
   font-variant-numeric: tabular-nums;
 }
+
+/* ── 종목 고르기 ─────────────────────── */
+
+.picker {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: calc(env(safe-area-inset-top) + 8px) 12px calc(env(safe-area-inset-bottom) + 24px);
+  background: var(--bg);
+}
+
+.picker > * {
+  flex-shrink: 0;
+  width: 100%;
+  max-width: 520px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.picker-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.picker-parts {
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  margin-top: 0;
+  padding-bottom: 2px;
+}
+
+.picker-parts .chip {
+  flex: none;
+}
+
+.picker-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.picker-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: var(--tap);
+  padding: 0 4px;
+  border: 0;
+  border-bottom: 1px solid var(--border);
+  background: transparent;
+  text-align: left;
+}
+
+.picker-item .muted {
+  font-size: 0.875rem;
+  white-space: nowrap;
+}
+
+.picker-new {
+  width: 100%;
+}
+
+.add-exercise {
+  width: 100%;
+  border-style: dashed;
+}
+
+.error {
+  margin: 8px 0 0;
+  color: var(--danger);
+  font-size: 0.875rem;
+}
+
+/* ── 루틴·설정 ───────────────────────── */
+
+.row-between {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.setting-row {
+  min-height: 56px;
+  border-top: 1px solid var(--border);
+}
+
+.setting-row:first-of-type {
+  border-top: 0;
+}
+
+.setting-gap {
+  margin-top: 14px;
+}
+
+.mini-stepper {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.mini-stepper .step-btn {
+  width: 40px;
+  min-width: 40px;
+  height: 40px;
+}
+
+.mini-value {
+  min-width: 24px;
+  text-align: center;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.mini-value.wide {
+  min-width: 64px;
+}
+
+.segmented {
+  display: flex;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.segmented button {
+  min-width: 48px;
+  min-height: 40px;
+  padding: 0 10px;
+  border: 0;
+  border-left: 1px solid var(--border);
+  background: transparent;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.segmented button:first-child {
+  border-left: 0;
+}
+
+.segmented button.selected {
+  background: var(--accent);
+  color: var(--accent-text);
+  font-weight: 700;
+}
+
+.routine-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 56px;
+  border-bottom: 1px solid var(--border);
+}
+
+.routine-item-name {
+  flex: 1;
+  min-width: 0;
+}
+
+.reorder {
+  display: flex;
+  flex-direction: column;
+}
+
+.mini-btn {
+  width: 32px;
+  height: 24px;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+
+.mini-btn:disabled {
+  opacity: 0.25;
+}
+
+.mini-btn.danger {
+  height: 40px;
+  color: var(--danger);
+  font-size: 1rem;
+}
+
+.routine-link {
+  flex: 1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  min-height: var(--tap);
+  border: 0;
+  background: transparent;
+  text-align: left;
+}
+
+.step-btn:disabled {
+  opacity: 0.3;
+}

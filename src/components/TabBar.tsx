@@ -1,9 +1,10 @@
-export type Tab = 'home' | 'history' | 'progress'
+export type Tab = 'home' | 'history' | 'progress' | 'settings'
 
 const TABS: Array<{ id: Tab; label: string; icon: string }> = [
   { id: 'home', label: '홈', icon: '🏠' },
   { id: 'history', label: '기록', icon: '📅' },
   { id: 'progress', label: '성장', icon: '📈' },
+  { id: 'settings', label: '설정', icon: '⚙️' },
 ]
 
 /** 하단 탭 (운동 중에는 숨긴다) */

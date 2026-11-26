@@ -7,6 +7,8 @@ import type { WorkoutSummary } from './db/repo'
 import { HistoryScreen } from './screens/HistoryScreen'
 import { HomeScreen } from './screens/HomeScreen'
 import { ProgressScreen } from './screens/ProgressScreen'
+import { RoutineEditScreen } from './screens/RoutineEditScreen'
+import { SettingsScreen } from './screens/SettingsScreen'
 import { SummaryScreen } from './screens/SummaryScreen'
 import { WorkoutDetailScreen } from './screens/WorkoutDetailScreen'
 import { WorkoutScreen } from './screens/WorkoutScreen'
@@ -17,8 +19,13 @@ type View =
   | { name: 'workout'; workoutId: number }
   | { name: 'summary'; summary: WorkoutSummary }
   | { name: 'detail'; workoutId: number }
+  | { name: 'routine'; routineId?: number }
 
-const TITLES: Record<Exclude<Tab, 'home'>, string> = { history: '운동 기록', progress: '성장 그래프' }
+const TITLES: Record<Exclude<Tab, 'home'>, string> = {
+  history: '운동 기록',
+  progress: '성장 그래프',
+  settings: '설정',
+}
 
 export default function App() {
   const [view, setView] = useState<View>({ name: 'loading' })
@@ -41,6 +48,8 @@ export default function App() {
   const goHistory = useCallback(() => setView({ name: 'history' }), [])
   const openWorkout = useCallback((workoutId: number) => setView({ name: 'workout', workoutId }), [])
   const showSummary = useCallback((summary: WorkoutSummary) => setView({ name: 'summary', summary }), [])
+  const goSettings = useCallback(() => setView({ name: 'settings' }), [])
+  const editRoutine = useCallback((routineId?: number) => setView({ name: 'routine', routineId }), [])
   const openDetail = useCallback((workoutId: number) => setView({ name: 'detail', workoutId }), [])
 
   switch (view.name) {
@@ -52,9 +61,12 @@ export default function App() {
       return <SummaryScreen summary={view.summary} onDone={goHome} />
     case 'detail':
       return <WorkoutDetailScreen workoutId={view.workoutId} onBack={goHistory} />
+    case 'routine':
+      return <RoutineEditScreen routineId={view.routineId} onDone={goSettings} />
     case 'home':
     case 'history':
     case 'progress':
+    case 'settings':
       return (
         <>
           <main className="app has-tabs">
@@ -62,6 +74,7 @@ export default function App() {
             {view.name === 'home' && <HomeScreen onOpenWorkout={openWorkout} onFinished={showSummary} />}
             {view.name === 'history' && <HistoryScreen onOpen={openDetail} />}
             {view.name === 'progress' && <ProgressScreen />}
+            {view.name === 'settings' && <SettingsScreen onEditRoutine={editRoutine} />}
           </main>
           <TabBar current={view.name} onChange={(tab) => setView({ name: tab })} />
         </>

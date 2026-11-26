@@ -1,9 +1,11 @@
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useEffect, useRef, useState } from 'react'
+import { ExercisePicker } from '../components/ExercisePicker'
 import { SetRow } from '../components/SetRow'
 import { RestTimerBar } from '../components/RestTimerBar'
 import { Sheet, Toast } from '../components/Sheet'
 import { db } from '../db/db'
+import { addExerciseToWorkout } from '../db/manage'
 import {
   addSet,
   deleteSet,
@@ -27,7 +29,7 @@ import { unlockAudio } from '../lib/sound'
 
 const TOAST_MS = 3000
 
-type Dialog = 'exit' | 'finish-unchecked' | 'finish-empty' | null
+type Dialog = 'exit' | 'finish-unchecked' | 'finish-empty' | 'add-exercise' | null
 
 /** 운동 화면에 필요한 데이터를 한 번에 (DB 가 바뀌면 자동 갱신) */
 function useWorkoutView(workoutId: number) {
@@ -201,6 +203,10 @@ export function WorkoutScreen(props: {
         )
       })}
 
+      <button type="button" className="btn btn-plain add-exercise" onClick={() => setDialog('add-exercise')}>
+        + 종목 추가
+      </button>
+
       <p className="hint-small">세트를 왼쪽으로 밀면 지울 수 있어요.</p>
 
       <div className="bottom-dock">
@@ -210,6 +216,19 @@ export function WorkoutScreen(props: {
         <RestTimerBar timer={rest} />
       </div>
 
+      {dialog === 'add-exercise' && (
+        <ExercisePicker
+          title="종목 추가"
+          selectedIds={new Set(sets.map((s) => s.exerciseId))}
+          onClose={() => setDialog(null)}
+          onPick={(exerciseId) => {
+            setDialog(null)
+            void addExerciseToWorkout(db, workout.id, exerciseId).then(() =>
+              setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 50),
+            )
+          }}
+        />
+      )}
       {dialog === 'exit' && (
         <Sheet
           title="운동을 잠깐 나갈까요?"
