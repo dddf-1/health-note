@@ -88,9 +88,14 @@ export async function importBackup(db: HealthNoteDB, backup: Backup): Promise<vo
   })
 }
 
-const csvCell = (v: string | number | null | undefined) => {
-  const s = v === null || v === undefined ? '' : String(v)
-  return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s
+/**
+ * CSV 셀. 글자 값이 = + - @ 탭 CR 로 시작하면 엑셀·구글 시트가 수식으로 실행하므로
+ * 앞에 ' 를 붙여 글자로 보이게 한다 (CSV 수식 주입 방지). 숫자 열은 그대로.
+ */
+export const csvCell = (v: string | number | null | undefined) => {
+  let s = v === null || v === undefined ? '' : String(v)
+  if (typeof v === 'string' && /^[=+\-@\t\r]/.test(s)) s = `'${s}`
+  return /[",\r\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s
 }
 
 const pad = (n: number) => String(n).padStart(2, '0')

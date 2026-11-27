@@ -11,7 +11,7 @@ import {
   ValidationError,
 } from './repo'
 import { updateSettings } from './manage'
-import { exportBackup, exportSetsCsv, importBackup, parseBackup } from './backup'
+import { csvCell, exportBackup, exportSetsCsv, importBackup, parseBackup } from './backup'
 
 let db: HealthNoteDB
 let other: HealthNoteDB
@@ -74,5 +74,21 @@ describe('F-19 CSV 내보내기', () => {
     expect(lines).toHaveLength(3)
     expect(lines[1]).toBe('2026-11-24 19:05,가슴·삼두,벤치프레스,1,60,10,"어깨가 좀, 뻐근함"')
     expect(lines[2]).toContain(',2,62.5,8,')
+  })
+
+  it('수식으로 시작하는 글자는 앞에 \' 를 붙여 실행되지 않게 (숫자는 그대로)', async () => {
+    const id = await oneWorkout()
+    await updateWorkoutMemo(db, id, '=HYPERLINK("http://evil.example","x")')
+    const csv = await exportSetsCsv(db)
+    const line = csv.replace('﻿', '').trim().split('\n')[1]
+    expect(line.endsWith(`,"'=HYPERLINK(""http://evil.example"",""x"")"`)).toBe(true)
+
+    expect(csvCell('+1')).toBe("'+1")
+    expect(csvCell('-2')).toBe("'-2")
+    expect(csvCell('@SUM(A1)')).toBe("'@SUM(A1)")
+    expect(csvCell('\tx')).toBe("'\tx")
+    expect(csvCell('\rx')).toBe(`"'\rx"`)
+    expect(csvCell(-5)).toBe('-5')
+    expect(csvCell('벤치프레스')).toBe('벤치프레스')
   })
 })
